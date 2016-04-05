@@ -3,4 +3,3 @@
 *.db
 *.sqlite
 *.sqlite3
-staticfiles

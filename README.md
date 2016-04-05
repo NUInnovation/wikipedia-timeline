@@ -2,10 +2,10 @@ WikiTimeline constructs a web-based timeline from a Wikipedia page, using Timeli
 
 To set up:
 
-git clone https://github.com/wroever/wikitimeline
-pip install -r requirements.txt
+1) git clone https://github.com/wroever/wikitimeline
+2) pip install -r requirements.txt
 
 To run:
 
-./manage.py collectstatic # Collect static files (if changes made)
-./manage.py runserver [PORT] # Will run on localhost:[PORT]
+1) python manage.py collectstatic # Collect static files (if changes made)
+2) python manage.py runserver [PORT] # Will run on localhost:[PORT]
