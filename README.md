@@ -27,7 +27,7 @@ WikiTimeline is currently running on Heroku at https://wikitimeline.herokuapp.co
 * Generate basic JSONs to populate test timelines.
 
 Setup
-_____
+-----
 
 ### Setup:
 
