@@ -13,6 +13,7 @@
 
         <link rel="stylesheet" href="{% static "wikitimeline/css/normalize.css" %}">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+        <link title="timeline-styles" rel="stylesheet" href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
         <link rel="stylesheet" href="{% static "wikitimeline/css/main.css" %}">
         <script src="{% static "wikitimeline/js/vendor/modernizr-2.8.3.min.js" %}"></script>
     </head>
@@ -24,13 +25,19 @@
         <div class="container">
             <h1>Welcome to WikiTimeline!</h1>
             <p>WikiTimeline transforms Wikipedia pages into dynamic Timeline.js timelines.</p>
+            <div id='timeline-embed' style="width: 100%; height: 600px"></div>
         </div>
 
         <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.12.0.min.js"><\/script>')</script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>        
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>   
+        <script src="https://cdn.knightlab.com/libs/timeline3/latest/js/timeline.js"></script>     
         <script src="{% static "wikitimeline/js/plugins.js" %}"></script>
         <script src="{% static "wikitimeline/js/main.js" %}"></script>
+        <script type="text/javascript">
+          timeline = new TL.Timeline('timeline-embed',
+            'https://docs.google.com/spreadsheets/d/1cWqQBZCkX9GpzFtxCWHoqFXCHg-ylTVUWlnrdYMzKUI/pubhtml');
+        </script>
 
         <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
         <script>
