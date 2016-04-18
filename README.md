@@ -1,6 +1,6 @@
 WikiTimeline
 ============
-*Last updated: 4/11/16*
+*Last updated: 4/18/16*
 
 WikiTimeline constructs a web-based timeline from a Wikipedia page, using TimelineJS.
 
@@ -21,10 +21,9 @@ WikiTimeline accepts a simple text query and uses the MediaWiki API to parse Wik
 WikiTimeline is currently running on Heroku at https://wikitimeline.herokuapp.com/. It runs on a Django server.
 
 ### Next Steps
-* Configure basic front-end search interface.
-* Implement MediaWiki API hooks.
-* Build event extraction logic.
+* Improve on MediaWiki parsing, handle different page structures.
 * Generate basic JSONs to populate test timelines.
+* Front-end improvements based on paper prototype testing
 
 Setup
 -----
