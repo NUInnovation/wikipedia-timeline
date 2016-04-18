@@ -20,6 +20,8 @@ import wikitimeline.views
 
 urlpatterns = [
     url(r'^$', wikitimeline.views.index),
+    url(r'^timeline/$', wikitimeline.views.timeline),
+    url(r'^loading/$', wikitimeline.views.loading),
     url(r'^admin/', include(admin.site.urls)),
 ]
 
