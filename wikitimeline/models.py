@@ -5,8 +5,6 @@
 
 import json, pycurl, re, requests, mwparserfromhell, datetime
 from StringIO import StringIO
-from mediawiki_parser.preprocessor import make_parser
-from mediawiki_parser.html import make_parser
 
 API_URL = "https://en.wikipedia.org/w/api.php"
 # Source for below: http://daringfireball.net/2010/07/improved_regex_for_matching_urls
@@ -73,20 +71,6 @@ class Query(object):
         text = res["query"]["pages"].values()[0]["revisions"][0]["*"]
         self.markup = mwparserfromhell.parse(text).__unicode__()
 
-    def mw2html(self):
-        templates = {}
-        allowed_tags = []
-        allowed_self_closing_tags = []
-        allowed_attributes = []
-        interwiki = {}
-        namespaces = {}
-
-        preprocessor = make_parser(templates)
-        parser = make_parser(allowed_tags, allowed_self_closing_tags, allowed_attributes, interwiki, namespaces)
-
-        preprocessed_text = preprocessor.parse(self.markup)
-        output = parser.parse(preprocessed_text.leaves())
-
 class ThisDayQuery(Query):
 
     def __init__(self):
@@ -106,7 +90,6 @@ class ThisDayQuery(Query):
                 'description': mw2plaintext(e[2])
             })
         return events
-        #print json.dumps(events)
 
 
 
