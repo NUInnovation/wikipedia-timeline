@@ -7,15 +7,15 @@ from wikitimeline.models import *
 """
 Serve index page
 """
+@ensure_csrf_cookie
 def index(request):
     return render(request, 'index.html', {'current_date': datetime.datetime.now()})
 
 """
 Generate a JSON-formatted timeline from the given query
 """
-@ensure_csrf_cookie
 def timeline(request):
-    context = { 'query': request.POST.get('query', ''), 'message': 'huzzah, ajax request received!' }
+    context = { 'query': request.POST.get('query', '') }
     return render(request, 'timeline.html', context)
 
 """
