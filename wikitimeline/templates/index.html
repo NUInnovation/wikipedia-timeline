@@ -68,16 +68,19 @@
                     }
                     function submit() {
                         $('#page-content').load('/loading/') // show loading page while we wait for callback
-                        $.ajax({
-                            type: "POST",
-                            url: '/timeline/',
-                            data: {
-                                'query': $input.val(),
-                            },
-                            success: function (data) {
-                                ajax_success(data);
-                            },
-                        });
+                        // Simulate delay... will remove this eventually...
+                        setTimeout(function () {
+                            $.ajax({
+                                type: "POST",
+                                url: '/timeline/',
+                                data: {
+                                    'query': $input.val(),
+                                },
+                                success: function (data) {
+                                    ajax_success(data);
+                                },
+                            });
+                        }, 10000);
                     }
                     $th.bind('click', submit);
                     $input.keypress(function(e){

@@ -15,7 +15,6 @@ Generate a JSON-formatted timeline from the given query
 """
 @ensure_csrf_cookie
 def timeline(request):
-    time.sleep(10) # Sleep to simulate processing time for more complicated timelines
     context = { 'query': request.POST.get('query', ''), 'message': 'huzzah, ajax request received!' }
     return render(request, 'timeline.html', context)
 
