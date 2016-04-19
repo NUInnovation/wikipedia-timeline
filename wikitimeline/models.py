@@ -72,9 +72,12 @@ class Query(object):
         self.markup = mwparserfromhell.parse(text).__unicode__()
 
 class ThisDayQuery(Query):
-
-    def __init__(self):
-        datestr= datetime.datetime.now().strftime('%B_%-d')
+    def __init__(self, timezone):
+        try:
+            now = datetime.datetime.now() - datetime.timedelta(hours=   int(timezone))
+        except TypeError:
+            raise Exception("Invalid timezone value!")
+        datestr = now.strftime('%B_%-d')
         self.raw_query = '%s/%s' % (ANNIVERSARIES, datestr)
 
     def get_events(self):

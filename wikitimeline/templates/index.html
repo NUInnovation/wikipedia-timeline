@@ -67,7 +67,9 @@
                         $('#page-content').html(data);
                     }
                     function submit() {
-                        $('#page-content').load('/loading/') // show loading page while we wait for callback
+                        var d = new Date();
+                        var tz_offset = d.getTimezoneOffset() / 60;
+                        $('#page-content').load('/loading/', {'timezone': tz_offset})
                         // Simulate delay... will remove this eventually...
                         setTimeout(function () {
                             $.ajax({

@@ -22,6 +22,7 @@ def timeline(request):
 Load "On this day in history"
 """
 def loading(request):
-    q = ThisDayQuery()
+    tz = request.POST.get('timezone', 0)
+    q = ThisDayQuery(tz)
     events = q.get_events()
     return render(request, 'loading.html', {'events': events})
