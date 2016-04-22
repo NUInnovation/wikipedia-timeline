@@ -1,0 +1,19 @@
+h1, h2 {
+	text-align: center;
+}
+
+header {
+	background-color: #f3f3f3;
+	padding: 3%;
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #aaa;
+	margin-bottom: 50px;
+}
+
+#text-input {
+	line-height: 1.5em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: "Arvo", serif;
+}
