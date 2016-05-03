@@ -1,6 +1,6 @@
 WikiTimeline
 ============
-*Last updated: 4/25/16*
+*Last updated: 5/2/16*
 
 WikiTimeline constructs a web-based timeline from a Wikipedia page, using TimelineJS.
 
