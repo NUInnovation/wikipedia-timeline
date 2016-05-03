@@ -3,4 +3,5 @@
 *.db
 *.sqlite
 *.sqlite3
+*.swp
 staticfiles

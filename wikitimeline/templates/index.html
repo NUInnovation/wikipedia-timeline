@@ -1,107 +1,48 @@
+{% extends "base.html" %}
 {% load staticfiles %}
-<!DOCTYPE HTML>
-<html class="no-js" lang="">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>WikiTimeline</title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <!-- Place favicon.ico in the root directory -->
-    <link rel="icon" type="image/png" href="//cdn.knightlab.com/libs/purpleline/latest/img/favicon.ico">
+{% block title %}WikiTimeline{% endblock %}
 
-    <link rel="stylesheet" href="{% static "wikitimeline/css/normalize.css" %}">
-    
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-    
-    <link title="timeline-styles" rel="stylesheet" href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
-    
-    <link rel="stylesheet" href="{% static "wikitimeline/css/main.css" %}">
-    <!-- Purple Line Stylesheet -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.knightlab.com/libs/purpleline/latest/css/purpleline.css">
-    <link rel="stylesheet" type="text/css" href="{% static "wikitimeline/css/style.css" %}">
+{% block stylesheets %}
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/smoothness/jquery-ui.css" />
+{% endblock %}
 
-    <script src="{% static "wikitimeline/js/vendor/modernizr-2.8.3.min.js" %}"></script>
-  </head>
-
-
-  <body>
-    <!--[if lt IE 8]>
-        <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-    <![endif]-->
-
-    <header>
-        <h1 class="logo-mark">WikiTimeline <span><em>JS</em></span></h1>
-        <h2 class="intro">Easy-to-make  Wikipedia timelines.</h2>
-    </header>
-
+{% block content %}
+    <form id="query-submit" action="/timeline/" method="POST">{% csrf_token %} 
+        <input id="validated-query" name="validated_query" type="hidden" value="" />
+    </form>
     <div id="page-content" class="container">
       <div class="row">
         <div class="col-m-6 col-m-offset-3 col-sm-10 col-sm-offset-1">
-          <p class="lead">Just paste a Wikipedia link or enter a search term in the bar search bar below.</p>
-          <p>Hit "Go!" and your beautiful timeline will be ready in no time!</p>
-          <p>Lorem Khaled Ipsum is a major key to success. Eliptical talk. Look at the sunset, life is amazing, life is beautiful, life is what you make it. It’s on you how you want to live your life. Everyone has a choice. I pick my choice, squeaky clean. The weather is amazing, walk with me through the pathway of more success. Take this journey with me, Lion! They key is to have every key, the key to open every door. You smart, you loyal, you a genius. Let me be clear, you have to make it through the jungle to make it to paradise, that’s the key, Lion!</p>
-          <p>Always remember in the jungle there’s a lot of they in there, after you overcome they, you will make it to paradise. A major key, never panic. Don’t panic, when it gets crazy and rough, don’t panic, stay calm. The other day the grass was brown, now it’s green because I ain’t give up. Never surrender. Wraith talk. It’s important to use cocoa butter. It’s the key to more success, why not live smooth? Why live rough? I’m giving you cloth talk, cloth. Special cloth alert, cut from a special cloth.</p>
-          <div class="input-group input-group-lg">
-            <input type="text" id="text-input" class="form-control" placeholder="Enter a search term or paste a link here">
+          <h3 class="action">Enter a Wikipedia link or a search term in the bar search bar below.</h3>
+          <div id="search-bar" class="input-group input-group-lg">
+            <input type="text" id="text-input" class="form-control" placeholder="Enter a Wikipedia link or a search term" />
             <span class="input-group-btn">
               <button id="search" class="btn btn-default button success" type="button">Go!</button>
             </span>
           </div>
+          <div id="err"></div>
         </div>
       </div>
     </div>
     <br/><br/>
+{% endblock %}
 
-
-
-    <footer>
-      <div class="about-knightlab">
-        <div id="knightlab-logo-column">
-          <a href="http://knightlab.northwestern.edu" target="_blank"><img src="http://knightlab.northwestern.edu/wp-content/uploads/2014/12/logo_stacked.png" class="img-responsive"></a>
-          <ul class="contact-icons">
-            <li><a title="follow @knightlab on Twitter" href="http://www.twitter.com/knightlab"><i class="fa fa-twitter"></i></a></li>
-            <li><a title="Knight Lab on Facebook" href="//www.facebook.com/knightlab"><i class="fa fa-facebook"></i></a></li>
-            <li><a title="email Knight Lab" href="mailto:Knightlab@northwestern.edu"><i class="fa fa-envelope-o"></i></a></li>
-            <li><a title="Knight Lab on GitHub" href="//github.com/NUKnightLab/"><i class="fa fa-github-alt"></i></a></li>
-          </ul>
-        </div>
-        <div id="knightlab-description">
-          <p>The <a title="Northwestern University" href="http://www.northwestern.edu/" target="_blank">Northwestern University</a> Knight Lab is a team of technologists and journalists working at advancing news media innovation through exploration and experimentation.</p>
-          <p>A joint initiative of the <a href="http://www.mccormick.northwestern.edu/" target="_blank">Robert R. McCormick School of Engineering and Applied Science</a> and the<a href="http://www.medill.northwestern.edu/" target="_blank"> Medill School of Journalism, Media, Integrated Marketing Communications</a>.</p><img src="http://knightlab.northwestern.edu/wp-content/uploads/2014/12/Logos-Horizontal.png" class="img-responsive logos">
-        </div>
-        <div class="contact">
-          <address itemscope="" itemtype="http://data-vocabulary.org/Organization">
-            <span style="display:none;" itemprop="name" title="Knight Lab | Advancing news media innovation through exploration and experimentation." class="address-name">Knight Lab</span>
-            <span itemprop="tel" class="tel">(847) 467-4971 | </span>
-            <span itemprop="address" itemscope="" itemtype="http://data-vocabulary.org/Address" class="address">
-              <span itemprop="street-address" class="street-address"><a href="//maps.google.com/maps?q=1845+Sheridan+Road+Evanston+IL+6020&hl=en&ll=42.050942,-87.673511&spn=0.003059,0.004898&sll=42.050647,-87.674246&sspn=0.012237,0.019591&gl=us&hnear=1845+Sheridan+Rd,+Evanston,+Cook,+Illinois+60201&t=m&z=18&iwloc=A" target="_blank">1845 Sheridan Road Fisk #109 & #111</span>, 
-              <span itemprop="locality">Evanston,</span> 
-              <span itemprop="region">IL</span> 
-              <span itemprop="postal-code">60208 |</span> 
-              <span itemprop="country-name" class="address-country">United States</span>
-            </span>
-            <span style="display:none;" itemprop="geo" itemscope="" itemtype="http://www.data-vocabulary.org/Geo/" class="geo">
-              Latitude: <span itemprop="latitude">42.056893</span><br>
-              Longitude: <span itemprop="longitude">-87.676735</span>
-            </span>
-            <a style="display:none;" href="http://knightlab.northwestern.edu" itemprop="url" class="url">Northwestern University Knight Lab | Advancing media innovation through exploration and experimentation.</a>
-          </address>
-          <span class="copyright">| Copyright 2015, Northwestern University</span>
-        </div>
-      </div><!-- end .about-knightlab -->
-    </footer>
-
-    <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
-    <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.12.0.min.js"><\/script>')</script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-    <script src="https://cdn.knightlab.com/libs/timeline3/latest/js/timeline.js"></script>     
-    <script src="{% static "wikitimeline/js/plugins.js" %}"></script>
-    <script src="{% static "wikitimeline/js/vendor/js.cookie.js" %}"></script>
-    <script src="{% static "wikitimeline/js/main.js" %}"></script>
+{% block scripts %}
     <script>
+
+        if (!String.prototype.format) {
+          String.prototype.format = function() {
+            var args = arguments;
+            return this.replace(/{(\d+)}/g, function(match, number) { 
+              return typeof args[number] != 'undefined'
+                ? args[number]
+                : match
+              ;
+            });
+          };
+        }
+
         $(document).ready(function () {
             // CSRF protection per https://docs.djangoproject.com/en/dev/ref/csrf/
             var csrftoken = Cookies.get('csrftoken');
@@ -118,48 +59,68 @@
             });
 
             $.fn.search = function () {
-                $th = this;
-                $input = $th.parent().prev()
-                function ajax_success(data) {
-                    $('#page-content').html(data);
+                var $th = this;
+                var $input = $('#text-input');
+                var err_html = '<div class="alert alert-danger" role="alert"><strong>{0}</strong> {1}</div>';
+                function get_err(raw_query) {
+                    var query = $.trim(raw_query);
+                    if (!query.length)
+                        return "Please enter a query or link.";
                 }
                 function submit() {
+                    var qval = $input.val();
+                    var err = get_err(qval);
+                    if (err) {
+                        $('#err').html(err_html.format("Whoops!", err));
+                        return;
+                    }
                     var d = new Date();
-                    var tz_offset = d.getTimezoneOffset() / 60;
-                    $('#page-content').load('/loading/', {'timezone': tz_offset})
-                    // Simulate delay... will remove this eventually...
-                    setTimeout(function () {
-                        $.ajax({
-                            type: "POST",
-                            url: '/timeline/',
-                            data: {
-                                'query': $input.val(),
-                            },
-                            success: function (data) {
-                                ajax_success(data);
-                            },
-                        });
-                    }, 10000);
+                    tzoffset = d.getTimezoneOffset() / 60;
+                    
+                    $.ajax({
+                        type: 'POST',
+                        url: '/validate/',
+                        data: {
+                            'query': qval,
+                            'timezone': tzoffset
+                        },
+                        success: function (data) {
+                            if (data.is_valid) {
+                                $('#page-content').html(data.events_html);
+                                setTimeout(function () {
+                                    $('#validated-query').val(data.validated_query);
+                                    $('#query-submit').submit();
+                                }, 10000);
+                            } else {
+                                $('#err').html(data.err_html);
+                            }
+                        },
+                    });
+                   
                 }
                 $th.bind('click', submit);
                 $input.keypress(function(e){
                     if (e.which == 13){
                         $th.click();
                     }
+                }).autocomplete({
+                    source: function(request, response) {
+                        $.ajax({
+                            url: "http://en.wikipedia.org/w/api.php",
+                            dataType: "jsonp",
+                            data: {
+                                'action': "opensearch",
+                                'format': "json",
+                                'search': request.term
+                            },
+                            success: function(data) {
+                                response(data[1]);
+                            }
+                        });
+                    }
                 });
             };
             $('#search').search();
         });
     </script>
-
-    <!-- Google Analytics: change UA-XXXXX-X to site ID. -->
-    <script>
-        (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
-        function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
-        e=o.createElement(i);r=o.getElementsByTagName(i)[0];
-        e.src='https://www.google-analytics.com/analytics.js';
-        r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
-        ga('create','UA-XXXXX-X','auto');ga('send','pageview');
-    </script>
-  </body>
-</html>
+{% endblock %}

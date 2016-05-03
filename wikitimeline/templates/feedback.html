@@ -1,0 +1,16 @@
+<div class="alert alert-danger" role="alert">
+{% if error %}
+  <p>{% if lead %}<strong>{{ lead }}</strong>{% endif %} {{ error }}</p>
+{% else %}
+  <p>{% if lead %}<strong>{{ lead }}</strong>{% endif %} {{ clarification }}</p>
+  {% for s in suggestions %}
+  <p><a class="search-suggest" href="#">{{s}}</a></p>
+  {% endfor %}
+{% endif %}
+</div>
+<script>
+    $('.search-suggest').bind('click', function (e) {
+        e.preventDefault();
+        $('#text-input').val($(this).text());
+    });
+</script>

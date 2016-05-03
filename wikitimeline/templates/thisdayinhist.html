@@ -1,0 +1,12 @@
+{% load staticfiles %}
+<div class="row">                                                                                                                                                                                     
+  <div class="col-sm-6 col-sm-offset-3">
+    <div class="text-center mb"><img class="loader" src="{% static "wikitimeline/img/loader.gif" %}" /></div>
+    <p class="text-center">Building your timeline, bear with me...</p>
+    <h2>On this date in history...</h2>
+    {% for e in events %}
+      <h4>{{ e.year }}</h4>
+      <p>{{ e.description }}</p>
+    {% endfor %}
+  </div>
+</div>
