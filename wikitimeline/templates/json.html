@@ -1,0 +1,37 @@
+{
+    "title": {
+        "text": {
+            "headline": "{{ query }}",
+            "text": "A timeline of events from https://en.wikipedia.org/wiki/Timeline_of_the_Middle_Ages"
+        }
+    },
+    "events": [
+    {% for e in events %}
+        {
+            "start_date": {
+                "year": "{{e.year}}"
+            },
+            {% if e.endyear %}
+            "end_date": {
+                "year": "629"
+              },
+            {% endif %}
+            {% if e.media_url %}
+            "media": {
+                "url": "{{e.media_url}}"
+            },
+            {% endif %}
+            {% if e.bg %}
+            "background": {
+                "opacity":"50",
+                "url": "https://upload.wikimedia.org/wikipedia/commons/a/a2/HumiliationValerianusHolbein.jpg"
+            },
+            {% endif %}
+            "text": {
+                "headline": "{{e.description}}",
+                "text": ""
+            }
+        },
+    {% endfor %}
+    ]
+}
