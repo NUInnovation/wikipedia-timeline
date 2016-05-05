@@ -46,6 +46,10 @@ def timeline(request):
         raise Exception("Invalid query: " + q.raw_query)
     if not q.page_found():
         raise Exception("Failed to get page: " + q.query)
+
+    events = q.get_events()
+    events_dict = { 'query': q.query, 'events': events }
+    context = { 'query': q.query, 'timeline': render_to_string('json.html', events_dict) }
     
     # Get events!
-    return render(request, 'timeline.html', {'query': q.query, 'timeline': 'true'})
+    return render(request, 'timeline.html', context)

@@ -108,16 +108,30 @@ class Query(object):
     def page_found(self):
         return hasattr(self, 'markup')
 
-    def parse(self):
-        data = {"action": "query", "prop": "revisions", "rvlimit": 1,
-                "rvprop": "content", "format": "json", "titles": self.query}
-        resp = requests.get(API_URL, params=data)
-        res = resp.json()
-        text = res["query"]["pages"].values()[0]["revisions"][0]["*"]
-        self.markup = unicode(mwparserfromhell.parse(text))
+    def eval_structure(self):
+        return  
 
-    def parseV2(self):
-        txt = wikipedia.page('blah')
+    def get_events(self):
+        soup = BeautifulSoup(self.markup, 'html.parser')
+
+        # Format 1: see 'List of Catholic Saints'
+        links = soup.find_all('span', {'class' : 'mw-headline'})
+        
+        events = []
+        for link in links:
+            maybe_year = link.get_text().strip()
+            if not re.match(r'[0-9]+$', maybe_year):
+                continue
+            year = maybe_year
+            # Check for multiple events
+            events_mkp = link.parent.find_next('ul').find_all('li')
+            for e in events_mkp:
+                desc = e.get_text().strip()
+                events.append({
+                    'year': year,
+                    'description': desc
+                })
+        return events
 
 
 class ThisDayQuery(Query):
@@ -135,7 +149,7 @@ class ThisDayQuery(Query):
     def get_events(self):
 
         soup = BeautifulSoup(self.markup, 'html.parser')
-        links = soup.findAll("a", {"title" : lambda t: t and re.match(r'[0-9]+$',t)})
+        links = soup.find_all("a", {"title" : lambda t: t and re.match(r'[0-9]+$',t)})
         
         events = []
         for link in links:
