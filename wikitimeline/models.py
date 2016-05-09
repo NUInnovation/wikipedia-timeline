@@ -24,22 +24,159 @@ def mw2plaintext(mkp):
     h = HTMLParser.HTMLParser()
     return h.unescape(txt.strip())
 
+
+class EventExtractor(object):
+    def __init__(self, soup):
+        self.soup = soup
+
+    def stripRefs(self,txt):
+        txt = txt.strip()
+        RX = '\[[0-9]+\]'
+        return re.sub(RX,'',txt)
+
+    def getYearRange(self,raw_txt):
+        # Check for BCE dates
+        range_split = re.search(ur'([0-9,]+(\sBC(E)?)?)?\s?(to|–|-)?\s?([0-9,]+(\sBC(E)?)?)?',raw_txt,re.UNICODE)
+        # Produces something like: (None, None, None, 'to', '14,000 BCE', ' BCE', 'E')
+        if range_split:
+            groups = range_split.groups()
+            raw_start = groups[0]
+            raw_end = groups[4]
+            rx_digits = r'[^0-9]'
+            if groups[3]:
+                # We have a range
+                endyr = re.sub(rx_digits,'',raw_end) if raw_end else datetime.datetime.now().strftime('%Y')
+                # Kind of a hacky solution here to prevent scale distortion
+                startyr = re.sub(rx_digits,'',raw_start) if raw_start else endyr
+                if groups[5]:
+                    # Both start and end must be negative...
+                    return '-'+startyr, '-'+endyr
+                elif groups[1]:
+                    return '-'+startyr, endyr
+            else:
+                startyr = re.sub(rx_digits,'',raw_start)
+                endyr = startyr
+                if groups[1]:
+                    return '-'+startyr, '-'+endyr
+            return startyr, endyr
+        else:
+            print "Failed to split year range: " + raw_txt
+            return '',''
+        
+        
+class EventExtractorAnniv(EventExtractor):
+    """
+    'Anniversary' format: See 'Wikipedia: selected anniversaries jan 1'
+    """
+    def extract(self, append_to=list()):
+        events = append_to
+        links = self.soup.find_all("a", {"title" : lambda t: t and re.match(r'[0-9]+$',t)})
+        for link in links:
+            desc = link.parent.get_text().strip()
+            rxres = re.match(RX_ANNIVERSARIES,desc,re.UNICODE)
+            try:
+                groups = rxres.groups()
+                events.append({
+                    'startyear': groups[0],
+                    'description': groups[2]
+                })
+            except:
+                pass
+        return events
+
+class EventExtractor1(EventExtractor):
+    """
+    Format 1: See 'List of Catholic Saints'
+    """
+    def extract(self, append_to=list()):
+        events = append_to
+        links = self.soup.find_all('span', {'class' : 'mw-headline'})
+        for link in links:
+            maybe_year = link.get_text().strip()
+            if not re.match(r'[0-9]+$', maybe_year):
+                continue
+            year = maybe_year
+            # Check for multiple events
+            events_mkp = link.parent.find_next('ul').find_all('li')
+            for e in events_mkp:
+                media_url = None
+                first_anchor = e.a
+                if first_anchor:
+                    ext_href = first_anchor.get('href', None)
+                    if ext_href and ext_href.startswith('/wiki/'):
+                        media_url = URL_PREFIX_EN + ext_href
+                desc = e.get_text().strip()
+                events.append({
+                    'startyear': year,
+                    'description': desc,
+                    'media_url': media_url
+                })
+        return events
+
+class EventExtractor2(EventExtractor):
+    """
+    Format 2: See 'Timeline of Canadian History'
+    """
+    def extract(self, append_to=list()):
+        events = append_to
+        first_rows = self.soup.select('table.wikitable > tr:nth-of-type(1)')
+        #tables = self.soup.find_all('table', {'class' : 'wikitable'})
+        for row in first_rows:
+            headers = row.find_all('th')
+            year_hdr = row.find('th', text=re.compile('^(\s+)?[Y|y]ear'))
+            date_hdr = row.find('th', text=re.compile('^(\s+)?[D|d]ate'))
+            desc_hdr = row.find('th', text=re.compile('^(\s+)?[E|e]vent'))
+            if not year_hdr:
+                # If we can't get a year, move on... for now...
+                continue
+            year_col = headers.index(year_hdr)
+            date_col = headers.index(date_hdr)
+            desc_col = headers.index(desc_hdr)
+            
+            elem = row.nextSibling
+            yearspan = 0 # Used to track years spanning multiple rows
+            while elem and (not elem.name or elem.name == 'tr'):
+                if elem.name == 'tr':
+                    cells = elem.find_all('td')
+                    if yearspan > 1:
+                        colshift = 1 if year_col < date_col and year_col < desc_col else 0
+                        # Above is always true in the case of the Canada example, but just in case
+                        yearspan -= 1
+                    else:
+                        colshift = 0
+                        raw_year = self.stripRefs(cells[year_col].get_text())
+                        yearspan = int(cells[year_col].attrs['rowspan']) if 'rowspan' in cells[year_col].attrs else 0
+                    startyr, endyr = self.getYearRange(raw_year)
+                    # TODO:Need to revisit for dates
+                    raw_date = self.stripRefs(cells[date_col-colshift].get_text())
+                
+                    # Attempt to get media URL
+                    desc_cell = cells[desc_col-colshift]
+                    media_url = None
+                    subelem1 = desc_cell.next_element
+                    if subelem1 and subelem1.name == 'a':
+                        ext_href = subelem1.get('href', None)
+                        if ext_href and ext_href.startswith('/wiki/'):
+                            media_url = URL_PREFIX_EN + ext_href
+                    
+                    raw_desc = self.stripRefs(desc_cell.get_text())
+                    events.append({
+                        'startyear': startyr,
+                        'endyear': endyr,
+                        'description': raw_desc,
+                        'media_url': media_url
+                    })
+                elem = elem.nextSibling
+
+        return events
+
 class Query(object):
 
-    feedback = {}
-    # Maybe need the below for wikipedia python API
-    #_opts = {
-    #    'action': 'query',
-    #    'prop': 'revisions',
-    #    'rvlimit': 1,
-    #    'rvprop': 'content',
-    #    'format': 'json',
-    #}
-    #_base_url= 'https://en.wikipedia.org/w/api.php?'
-    #######
+    feedback = dict()
 
     def __init__(self, raw):
         self.raw_query = raw
+        self.extractors = [EventExtractorAnniv, EventExtractor1, EventExtractor2]
 
     def validate(self, get_markup=False):
         if not self.raw_query:
@@ -68,7 +205,6 @@ class Query(object):
             self.feedback['error'] = 'Link is not a valid Wikipedia link!'
         else:
             result = wikipedia.search(self.raw_query, suggestion=True)
-            print result
             if result[0] and result[0][0] and result[0][0].lower() == self.raw_query.lower():
                 # Best case scenario... exact match
                 print "Query accepted: " + self.raw_query
@@ -113,32 +249,15 @@ class Query(object):
 
     def get_events(self):
         soup = BeautifulSoup(self.markup, 'html.parser')
+        self.events = []
 
-        # Format 1: see 'List of Catholic Saints'
-        links = soup.find_all('span', {'class' : 'mw-headline'})
-        
-        events = []
-        for link in links:
-            maybe_year = link.get_text().strip()
-            if not re.match(r'[0-9]+$', maybe_year):
-                continue
-            year = maybe_year
-            # Check for multiple events
-            events_mkp = link.parent.find_next('ul').find_all('li')
-            for e in events_mkp:
-                media_url = None
-                first_anchor = e.a
-                if first_anchor:
-                    ext_href = first_anchor.get('href', None)
-                    if ext_href and ext_href.startswith('/wiki/'):
-                        media_url = URL_PREFIX_EN + ext_href
-                desc = e.get_text().strip()
-                events.append({
-                    'year': year,
-                    'description': desc,
-                    'media_url': media_url
-                })
-        return events
+        # Iterate through extractors (each corresponds to a different page format)
+        for extractor_class in self.extractors:
+            if not self.events:
+                extractor = extractor_class(soup)
+                self.events = extractor.extract(append_to=self.events)
+
+        return self.events
 
 
 class ThisDayQuery(Query):
@@ -152,23 +271,4 @@ class ThisDayQuery(Query):
         # Set validated query and markup - no further validation required
         self.query = '%s %s' % (ANNIVERSARIES, datestr)
         self.markup = wikipedia.page(self.query).html()
-
-    def get_events(self):
-
-        soup = BeautifulSoup(self.markup, 'html.parser')
-        links = soup.find_all("a", {"title" : lambda t: t and re.match(r'[0-9]+$',t)})
-        
-        events = []
-        for link in links:
-            desc = link.parent.get_text().strip()
-            rxres = re.match(RX_ANNIVERSARIES,desc,re.UNICODE)
-            try:
-                groups = rxres.groups()
-                events.append({
-                    'year': groups[0],
-                    'description': groups[2]
-                })
-            except:
-                pass
-        return events
-
+        self.extractors = [EventExtractorAnniv]

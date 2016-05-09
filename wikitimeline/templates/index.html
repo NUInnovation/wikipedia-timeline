@@ -21,7 +21,11 @@
               <button id="search" class="btn btn-default button success" type="button">Go!</button>
             </span>
           </div>
-          <div id="err"></div>
+          <div id="err">
+          {% if err %}
+            <div class="alert alert-danger" role="alert"><strong>Whoops!</strong> {{err}}</div>
+          {% endif %}
+          </div>
         </div>
       </div>
     </div>

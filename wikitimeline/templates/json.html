@@ -8,12 +8,14 @@
     "events": [
     {% for e in events %}
         {
+            {% if e.endyear %}
             "start_date": {
-                "year": "{{e.year}}"
+                "year": "{{e.startyear}}"
             },
+            {% endif %}
             {% if e.endyear %}
             "end_date": {
-                "year": "629"
+                "year": "{{e.endyear}}"
               },
             {% endif %}
             {% if e.media_url %}
@@ -28,8 +30,8 @@
             },
             {% endif %}
             "text": {
-                "headline": "{{e.description}}",
-                "text": ""
+                "headline": "",
+                "text": "{{e.description}}"
             }
         },
     {% endfor %}

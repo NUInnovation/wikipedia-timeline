@@ -1,6 +1,6 @@
 import datetime, time, json
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import ensure_csrf_cookie
 
@@ -12,7 +12,13 @@ Serve index page
 """
 @ensure_csrf_cookie
 def index(request):
-    return render(request, 'index.html')
+    err = request.GET.get('err','')
+    if err == 'noevents':
+        msg = 'No events found!'
+        context = { 'err': msg }
+        return render(request, 'index.html', context)
+    else:
+        return render(request, 'index.html')
 
 """
 Validate query, return JSON-formatted feedback or events
@@ -48,8 +54,10 @@ def timeline(request):
         raise Exception("Failed to get page: " + q.query)
 
     events = q.get_events()
+    if len(events) < 1:
+        return redirect('/?err=noevents')
+
     events_dict = { 'query': q.query, 'events': events }
     context = { 'query': q.query, 'timeline': render_to_string('json.html', events_dict) }
-    
-    # Get events!
+
     return render(request, 'timeline.html', context)

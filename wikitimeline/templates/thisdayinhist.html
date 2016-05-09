@@ -6,7 +6,7 @@
     <h2>On this date in history...</h2>
     {% for e in events %}
 		{% if forloop.counter0 < 5 %}
-			<h4>{{ e.year }}</h4>
+			<h4>{{ e.startyear }}</h4>
 			<p>{{ e.description }}</p>
 		{% endif %}
     {% endfor %}
