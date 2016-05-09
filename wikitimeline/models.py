@@ -120,7 +120,6 @@ class EventExtractor2(EventExtractor):
     def extract(self, append_to=list()):
         events = append_to
         first_rows = self.soup.select('table.wikitable > tr:nth-of-type(1)')
-        #tables = self.soup.find_all('table', {'class' : 'wikitable'})
         for row in first_rows:
             headers = row.find_all('th')
             year_hdr = row.find('th', text=re.compile('^(\s+)?[Y|y]ear'))
@@ -153,9 +152,12 @@ class EventExtractor2(EventExtractor):
                     # Attempt to get media URL
                     desc_cell = cells[desc_col-colshift]
                     media_url = None
-                    subelem1 = desc_cell.next_element
-                    if subelem1 and subelem1.name == 'a':
-                        ext_href = subelem1.get('href', None)
+                    #subelem1 = desc_cell.next_element
+                    #if subelem1 and subelem1.name == 'a':
+                    first_anchor = desc_cell.a
+                    if first_anchor:
+                        # ext_href = subelem1.get('href', None)
+                        ext_href = first_anchor.get('href', None)
                         if ext_href and ext_href.startswith('/wiki/'):
                             media_url = URL_PREFIX_EN + ext_href
                     
@@ -252,10 +254,13 @@ class Query(object):
         self.events = []
 
         # Iterate through extractors (each corresponds to a different page format)
-        for extractor_class in self.extractors:
-            if not self.events:
-                extractor = extractor_class(soup)
-                self.events = extractor.extract(append_to=self.events)
+        i = 0
+        while i < len(self.extractors) and not self.events:
+            extractor_class = self.extractors[i]
+            extractor = extractor_class(soup)
+            self.events = extractor.extract(append_to=self.events)
+            print self.events
+            i += 1
 
         return self.events
 

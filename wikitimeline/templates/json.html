@@ -8,7 +8,7 @@
     "events": [
     {% for e in events %}
         {
-            {% if e.endyear %}
+            {% if e.startyear %}
             "start_date": {
                 "year": "{{e.startyear}}"
             },
