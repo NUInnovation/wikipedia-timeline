@@ -6,8 +6,8 @@
 import json, pycurl, re, requests, mwparserfromhell, datetime, HTMLParser, wikipedia
 from StringIO import StringIO
 from bs4 import BeautifulSoup
+from urllib import unquote
 
-API_URL = "https://en.wikipedia.org/w/api.php"
 # Source for below: http://daringfireball.net/2010/07/improved_regex_for_matching_urls
 RX_URLMATCH = r'(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)/)(?:[^\s()<>{}\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’])|(?:(?<!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))'
 URL_PREFIX_EN = 'https://en.wikipedia.org'
@@ -24,7 +24,9 @@ def mw2plaintext(mkp):
     h = HTMLParser.HTMLParser()
     return h.unescape(txt.strip())
 
-
+"""
+EventExtractor - base extractor object declaration, format-specific extractors inherit from this
+"""
 class EventExtractor(object):
     def __init__(self, soup):
         self.soup = soup
@@ -132,7 +134,7 @@ class EventExtractor2(EventExtractor):
             date_col = headers.index(date_hdr)
             desc_col = headers.index(desc_hdr)
             
-            elem = row.nextSibling
+            elem = row.find_next('tr') # this may mean moving from thead to tbody
             yearspan = 0 # Used to track years spanning multiple rows
             while elem and (not elem.name or elem.name == 'tr'):
                 if elem.name == 'tr':
@@ -172,14 +174,23 @@ class EventExtractor2(EventExtractor):
 
         return events
 
+"""
+Query: Base query object
+"""
 class Query(object):
 
     feedback = dict()
 
+    """
+    constructor -- get raw query text and set extractors
+    """
     def __init__(self, raw):
         self.raw_query = raw
         self.extractors = [EventExtractorAnniv, EventExtractor1, EventExtractor2]
 
+    """
+    validate -- attempt to validate query text (may be a link or simple text), set error feedback if needed
+    """
     def validate(self, get_markup=False):
         if not self.raw_query:
             self.feedback['error'] = 'Query cannot be empty'
@@ -199,7 +210,7 @@ class Query(object):
                 # Confirm the link is well-formed and the page is valid.
                 wiki_url_scan = re.search(RX_WIKIURL, effective_url)
                 if status == 200 and wiki_url_scan:
-                    self.query = wiki_url_scan.groups()[0]
+                    self.query = unquote(wiki_url_scan.groups()[0])
                     if get_markup: self.markup = buffer.getvalue()
                     return
             except:
@@ -264,7 +275,9 @@ class Query(object):
 
         return self.events
 
-
+"""
+ThisDayQuery: query object for the 'This Day in History' loading module
+"""
 class ThisDayQuery(Query):
     def __init__(self, timezone):
         try:
