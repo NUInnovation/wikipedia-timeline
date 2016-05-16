@@ -3,7 +3,7 @@
 
 # from django.db import models # MIGHT NOT NEED
 
-import json, pycurl, re, requests, mwparserfromhell, datetime, HTMLParser, wikipedia
+import json, pycurl, re, requests, datetime, HTMLParser, wikipedia
 from StringIO import StringIO
 from bs4 import BeautifulSoup
 from urllib import unquote
@@ -16,14 +16,6 @@ RX_DATES = ur'\=\=\= ([0-9]+) \=\=\=[\r\n](\<\!\-\-.*\-\-\>[\r\n])?(?:(\* .+[\r\
 ANNIVERSARIES = 'Wikipedia:selected anniversaries'
 RX_ANNIVERSARIES = ur'([0-9]+) (–|-) (.*)'
 
-def mw2plaintext(mkp):
-    RXs = [ur"\u2013",r"\|.+?\]{2}",r"\<\!\-\-.+?\-\-\>",r"\'{3}",r"\[{2}",r"\]{2}"]
-    txt = mkp
-    for r in RXs:
-        txt = re.sub(r,'',txt)
-    h = HTMLParser.HTMLParser()
-    return h.unescape(txt.strip())
-
 """
 EventExtractor - base extractor object declaration, format-specific extractors inherit from this
 """
@@ -35,6 +27,37 @@ class EventExtractor(object):
         txt = txt.strip()
         RX = '\[[0-9]+\]'
         return re.sub(RX,'',txt)
+
+    def getLeadImageFromPage(self,page_id):
+        #image = 'https://en.wikipedia.org/w/api.php?action=parse&text={{%s}}&prop=images' % page_id
+        wp_image_query = 'https://en.wikipedia.org/w/api.php?action=query&titles=%s&prop=pageimages&pilimit=1&format=json' % page_id
+
+        # Curl dat image URL
+        buffer = StringIO()
+        c = pycurl.Curl()
+        c.setopt(pycurl.URL, wp_image_query)
+        c.setopt(pycurl.FOLLOWLOCATION, 1)
+        c.setopt(pycurl.WRITEDATA, buffer)
+        try:
+            c.perform()
+            status = c.getinfo(pycurl.HTTP_CODE)
+            if status == 200:
+                print buffer.getvalue()
+                curl_result = json.loads(buffer.getvalue())
+                pages = curl_result['query']['pages']
+                d = pages.items()
+                wp_pagenum = d[0][0]
+                thumbsrc = pages[wp_pagenum]['thumbnail']['source']
+                #image_loc = 'https://commons.wikimedia.org/w/api.php?action=query&titles=File:%s&prop=imageinfo&&iiprop=url&iiurlwidth=220'
+                # The below is a hacky way to get around doing an extra API query to locate the image
+                rx_thumbsrc_match = re.match(r'(.*)/[0-9]+px\-.+$',thumbsrc)
+                if rx_thumbsrc_match:
+                    image_src = rx_thumbsrc_match.groups()[0]
+                    image_src = re.sub('/thumb/','/',image_src)
+                    return image_src
+        except:
+            print "No image found for page: " + page_id
+        return None 
 
     def getYearRange(self,raw_txt):
         # Check for BCE dates
@@ -117,7 +140,7 @@ class EventExtractor1(EventExtractor):
 
 class EventExtractor2(EventExtractor):
     """
-    Format 2: See 'Timeline of Canadian History'
+    Format 2: See 'Timeline of Canadian History,' 'History of same-sex marriage'
     """
     def extract(self, append_to=list()):
         events = append_to
@@ -151,24 +174,23 @@ class EventExtractor2(EventExtractor):
                     # TODO:Need to revisit for dates
                     raw_date = self.stripRefs(cells[date_col-colshift].get_text())
                 
-                    # Attempt to get media URL
+                    # Attempt to get media URL, image
                     desc_cell = cells[desc_col-colshift]
                     media_url = None
-                    #subelem1 = desc_cell.next_element
-                    #if subelem1 and subelem1.name == 'a':
+                    image = None
                     first_anchor = desc_cell.a
                     if first_anchor:
-                        # ext_href = subelem1.get('href', None)
                         ext_href = first_anchor.get('href', None)
                         if ext_href and ext_href.startswith('/wiki/'):
                             media_url = URL_PREFIX_EN + ext_href
-                    
+                            image = self.getLeadImageFromPage(ext_href[6:])
                     raw_desc = self.stripRefs(desc_cell.get_text())
                     events.append({
                         'startyear': startyr,
                         'endyear': endyr,
                         'description': raw_desc,
-                        'media_url': media_url
+                        'media_url': media_url,
+                        'bg': image
                     })
                 elem = elem.nextSibling
 
