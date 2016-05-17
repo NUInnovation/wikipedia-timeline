@@ -93,20 +93,32 @@ class EventExtractorAnniv(EventExtractor):
     """
     'Anniversary' format: See 'Wikipedia: selected anniversaries jan 1'
     """
-    def extract(self, append_to=list()):
+    def extract(self, append_to=list(),maxevents=None):
         events = append_to
+        eventcount = 0
         links = self.soup.find_all("a", {"title" : lambda t: t and re.match(r'[0-9]+$',t)})
         for link in links:
             desc = link.parent.get_text().strip()
             rxres = re.match(RX_ANNIVERSARIES,desc,re.UNICODE)
-            try:
-                groups = rxres.groups()
-                events.append({
-                    'startyear': groups[0],
-                    'description': groups[2]
-                })
-            except:
-                pass
+            if not rxres:
+                continue
+            groups = rxres.groups()
+            # Get BG image
+            image = None
+            next_anchor_aslist = link.parent.select('a:nth-of-type(2)')
+            next_anchor = next_anchor_aslist[0] if next_anchor_aslist else None
+            if next_anchor:
+                ext_href = next_anchor.get('href', None)
+                if ext_href and ext_href.startswith('/wiki/'):
+                    image = self.getLeadImageFromPage(ext_href[6:])
+                    if image:
+                        events.append({
+                            'startyear': groups[0],
+                            'description': groups[2],
+                            'bg': image
+                        })
+                        eventcount += 1
+                        if maxevents and eventcount == maxevents: break
         return events
 
 class EventExtractor1(EventExtractor):
@@ -125,16 +137,19 @@ class EventExtractor1(EventExtractor):
             events_mkp = link.parent.find_next('ul').find_all('li')
             for e in events_mkp:
                 media_url = None
+                image = None
                 first_anchor = e.a
                 if first_anchor:
                     ext_href = first_anchor.get('href', None)
                     if ext_href and ext_href.startswith('/wiki/'):
                         media_url = URL_PREFIX_EN + ext_href
+                        image = self.getLeadImageFromPage(ext_href[6:])
                 desc = e.get_text().strip()
                 events.append({
                     'startyear': year,
                     'description': desc,
-                    'media_url': media_url
+                    'media_url': media_url,
+                    'bg': image
                 })
         return events
 
@@ -279,9 +294,6 @@ class Query(object):
     def page_found(self):
         return hasattr(self, 'markup')
 
-    def eval_structure(self):
-        return  
-
     def get_events(self):
         soup = BeautifulSoup(self.markup, 'html.parser')
         self.events = []
@@ -312,3 +324,18 @@ class ThisDayQuery(Query):
         self.query = '%s %s' % (ANNIVERSARIES, datestr)
         self.markup = wikipedia.page(self.query).html()
         self.extractors = [EventExtractorAnniv]
+
+    def get_events(self):
+        soup = BeautifulSoup(self.markup, 'html.parser')
+        self.events = []
+
+        # Iterate through extractor(s)
+        i = 0
+        while i < len(self.extractors) and not self.events:
+            extractor_class = self.extractors[i]
+            extractor = extractor_class(soup)
+            self.events = extractor.extract(append_to=self.events,maxevents=5)
+            print self.events
+            i += 1
+
+        return self.events
