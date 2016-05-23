@@ -67,7 +67,7 @@ class EventExtractor(object):
         return None 
 
     def get_year_range(self,raw_txt):
-        print "Getting year range from: " + raw_txt
+        # print "Getting year range from: " + raw_txt
         # Check for BCE dates
         range_split = re.search(ur'((AD\s)?[0-9,]+(\sBC(E)?)?)?\s?([Bb]efore|[Uu]until|[Pp]rior to|to|–|-)?\s?([0-9,]+(\sBC(E)?)?)?',raw_txt,re.UNICODE)
         # Produces something like: (None, None, None, 'to', '14,000 BCE', ' BCE', 'E')
