@@ -12,7 +12,7 @@ h3 {
 
 h3.action {
     margin-bottom: 70px;
-    margin-top: 100px;
+    margin-top: 70px;
     text-align: center;
 }
 
@@ -30,4 +30,18 @@ header {
 
 #search-bar {
     margin-bottom: 3%;
+}
+
+.timeline-caption {
+    text-align: right;
+    font-size: 0.8em;
+    font-style: italic;
+    margin-bottom: 60px;
+}
+
+.build-timeline {
+    margin: 0 auto;
+    display: block;
+    width: 220px;
+    margin-top: 40px;
 }

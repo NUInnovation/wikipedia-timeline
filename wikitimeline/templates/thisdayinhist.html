@@ -3,8 +3,8 @@
 <div class="row">
   <div class="col-sm-6 col-sm-offset-3">
     <div class="text-center mb"><img class="loader" src="{% static "wikitimeline/img/loader.gif" %}" /></div>
-    <p class="text-center">Building your timeline, bear with me...</p>
-    <h2>On this date in history...</h2>
+    <p class="text-center">Building your timeline ...</p>
+    <h2>Meanwhile, on this date in history ...</h2>
     {% for e in events %}
 		{% if forloop.counter0 < 5 %}
 			<h4>{{ e.startyear }}</h4>

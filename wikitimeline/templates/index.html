@@ -12,18 +12,24 @@
         <input id="validated-query" name="validated_query" type="hidden" value="" />
     </form>
     <div id="page-content" class="container">
+        <iframe src='https://cdn.knightlab.com/libs/timeline3/latest/embed/index.html?source=19SoUdUaFPHUDWgZm8ifuMBxI5x_PrUUGTllr93Os3EY&font=Default&lang=en&initial_zoom=2&height=400' width='100%' height='400' frameborder='0'></iframe>
+        <p class="timeline-caption">A WikiTimeline about the <a href="https://en.wikipedia.org/wiki/Timeline_of_Canadian_history" target="_blank">History of Canada in the 20th century</a>.</p>
       <div class="row">
-        <div class="col-m-6 col-m-offset-3 col-sm-10 col-sm-offset-1">
-          <h3 class="action">Enter a Wikipedia link or a search term in the bar search bar below.</h3>
+        <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1 col-sm-10 col-sm-offset-1 col-xs-12">
+          <p>WikiTimeline is a free, open-source tool based on <a href="http://timeline.knightlab.com/" target="_blank">TimelineJS</a> that builds beautiful, interactive timelines using on Wikipedia articles. Just give it a search query or the link to an article, and we'll handle the rest.</p>
+          <p>This tool works best with articles that contain a series of events in chronological order. If it doesn't turn out how you expected, try building WikiTimelines using variations of your search query.</p>
+        </div>
+        <div class="col-lg-10 col-lg-offset-1 col-md-10 col-md-offset-1 col-sm-10 col-sm-offset-1 col-xs-12">
+          <h3 class="action" id="build">Enter a Wikipedia link or a search term in the bar search bar below.</h3>
           <div id="search-bar" class="input-group input-group-lg">
-            <input type="text" id="text-input" class="form-control" placeholder="Enter a Wikipedia link or a search term" />
+            <input type="text" id="text-input" class="form-control" placeholder="Enter a Wikipedia link or a search term here" />
             <span class="input-group-btn">
               <button id="search" class="btn btn-default button success" type="button">Go!</button>
             </span>
           </div>
           <div id="err">
           {% if err %}
-            <div class="alert alert-danger" role="alert"><strong>Whoops!</strong> {{err}}</div>
+            <div class="alert alert-danger" role="alert">{{err}}</div>
           {% endif %}
           </div>
         </div>
@@ -62,10 +68,14 @@
                 }
             });
 
+            $( "#make-TL-button" ).click(function() {
+              $( "#build" ).scroll();
+            });
+
             $.fn.search = function () {
                 var $th = this;
                 var $input = $('#text-input');
-                var err_html = '<div class="alert alert-danger" role="alert"><strong>{0}</strong> {1}</div>';
+                var err_html = '<div class="alert alert-danger" role="alert"> {}</div>';
                 function get_err(raw_query) {
                     var query = $.trim(raw_query);
                     if (!query.length)
@@ -75,7 +85,7 @@
                     var qval = $input.val();
                     var err = get_err(qval);
                     if (err) {
-                        $('#err').html(err_html.format("Whoops!", err));
+                        $('#err').html(err_html.format(err));
                         return;
                     }
                     var d = new Date();

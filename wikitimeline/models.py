@@ -260,7 +260,7 @@ class Query(object):
                     return
             except:
                 pass
-            self.feedback['error'] = 'Link is not a valid Wikipedia link!'
+            self.feedback['error'] = 'Sorry, this link is not a valid Wikipedia link.'
         else:
             result = wikipedia.search(self.raw_query, suggestion=True)
             if result[0] and result[0][0] and result[0][0].lower() == self.raw_query.lower():
@@ -274,15 +274,15 @@ class Query(object):
             elif result[0]:
                 # Display suggestions
                 print "No matching page found and no suggestion was provided. Displaying potential alternatives:\n" + ''.join([("\t%s\n" % s) for s in result[0]])
-                self.feedback['lead'] = "Whoops, nothing found."
+                self.feedback['lead'] = "Sorry, I couldn't find anything."
                 self.feedback['clarification'] = "Did you mean to search for one of the items below?"
                 self.feedback['suggestions'] = result[0]
             else:
                 # We got nothing...
                 print "No matching page found, and no suggestions are available."
-                self.feedback['lead'] = "Whoops, nothing found."
-                self.feedback['error'] = "Please check that you've spelled your query correctly and try again. "\
-                                         "You may find it easier to copy a link directly to the page you wish to summarize."
+                self.feedback['lead'] = "Sorry, I couldn't find anything."
+                self.feedback['error'] = "Please check the spelling of the query."\
+                                         "It might be easier to copy the link of the page you want to turn into a Timeline."
 
             if hasattr(self, 'query'):
                 try:
