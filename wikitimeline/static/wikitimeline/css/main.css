@@ -95,17 +95,6 @@ textarea {
    Custom styles
    ========================================================================== */
 
-html {
-    height: 100%;
-    width: 100%;
-    display: table;
-}
-body {
-    height: 100%;
-    width: 100%;
-    display: table-cell;
-    vertical-align: middle;
-}
 h1 {
     margin-top: 0px;
 }

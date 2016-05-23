@@ -93,7 +93,7 @@ class EventExtractorAnniv(EventExtractor):
     """
     'Anniversary' format: See 'Wikipedia: selected anniversaries jan 1'
     """
-    def extract(self, append_to=list(),maxevents=None):
+    def extract(self, append_to=list(), maxevents=None, get_images=True):
         events = append_to
         eventcount = 0
         links = self.soup.find_all("a", {"title" : lambda t: t and re.match(r'[0-9]+$',t)})
@@ -104,21 +104,29 @@ class EventExtractorAnniv(EventExtractor):
                 continue
             groups = rxres.groups()
             # Get BG image
-            image = None
-            next_anchor_aslist = link.parent.select('a:nth-of-type(2)')
-            next_anchor = next_anchor_aslist[0] if next_anchor_aslist else None
-            if next_anchor:
-                ext_href = next_anchor.get('href', None)
-                if ext_href and ext_href.startswith('/wiki/'):
-                    image = self.getLeadImageFromPage(ext_href[6:])
-                    if image:
-                        events.append({
-                            'startyear': groups[0],
-                            'description': groups[2],
-                            'bg': image
-                        })
-                        eventcount += 1
-                        if maxevents and eventcount == maxevents: break
+            if get_images:
+                image = None
+                next_anchor_aslist = link.parent.select('a:nth-of-type(2)')
+                next_anchor = next_anchor_aslist[0] if next_anchor_aslist else None
+                if next_anchor:
+                    ext_href = next_anchor.get('href', None)
+                    if ext_href and ext_href.startswith('/wiki/'):
+                        image = self.getLeadImageFromPage(ext_href[6:])
+                        if image:
+                            events.append({
+                                'startyear': groups[0],
+                                'description': groups[2],
+                                'bg': image
+                            })
+            else:
+                events.append({
+                    'startyear': groups[0],
+                    'description': groups[2],
+                })
+                
+            eventcount += 1
+            if maxevents and eventcount == maxevents: break
+
         return events
 
 class EventExtractor1(EventExtractor):
@@ -334,8 +342,7 @@ class ThisDayQuery(Query):
         while i < len(self.extractors) and not self.events:
             extractor_class = self.extractors[i]
             extractor = extractor_class(soup)
-            self.events = extractor.extract(append_to=self.events,maxevents=5)
-            print self.events
+            self.events = extractor.extract(append_to=self.events,maxevents=5,get_images=False)
             i += 1
 
         return self.events

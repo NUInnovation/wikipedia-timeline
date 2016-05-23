@@ -31,10 +31,9 @@
   <div class="carousel-inner" role="listbox">
     {% for e in events %}
     <div class="item{% if forloop.first %} active{% endif %}">
-      <img class="{% cycle 'first' 'second' 'third' 'fourth' 'fifth' %}-slide" src="{{ e.bg }}" alt="{% cycle 'First' 'Second' 'Third' 'Fourth' 'Fifth' %} slide">
       <div class="container">
         <div class="carousel-caption">
-          <h3>{{ e.startyear }}</h3>
+          <h2>{{ e.startyear }}</h2>
           <p>{{ e.description }}</p>
         </div>
       </div>

@@ -58,6 +58,7 @@ def timeline(request):
         return redirect('/?err=noevents')
 
     events_dict = { 'query': q.query, 'events': events }
+    print render_to_string('json.html', events_dict)
     context = { 'query': q.query, 'timeline': render_to_string('json.html', events_dict) }
 
     return render(request, 'timeline.html', context)
