@@ -6,7 +6,7 @@
 import json, pycurl, re, requests, datetime, HTMLParser, wikipedia
 from StringIO import StringIO
 from bs4 import BeautifulSoup
-from urllib import unquote
+from urllib import quote, unquote
 
 # Source for below: http://daringfireball.net/2010/07/improved_regex_for_matching_urls
 RX_URLMATCH = r'(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)/)(?:[^\s()<>{}\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’])|(?:(?<!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))'
@@ -15,20 +15,27 @@ RX_WIKIURL = r'wikipedia\.org/wiki/(.+)'
 RX_DATES = ur'\=\=\= ([0-9]+) \=\=\=[\r\n](\<\!\-\-.*\-\-\>[\r\n])?(?:(\* .+[\r\n])?)+'
 ANNIVERSARIES = 'Wikipedia:selected anniversaries'
 RX_ANNIVERSARIES = ur'([0-9]+) (–|-) (.*)'
+RX_HYPHEN_SPLIT = ur'(.+) (–|-) (.+)$'
 
 """
 EventExtractor - base extractor object declaration, format-specific extractors inherit from this
 """
 class EventExtractor(object):
-    def __init__(self, soup):
+    def __init__(self, soup=None):
         self.soup = soup
 
-    def stripRefs(self,txt):
+    def strip_refs(self,txt):
         txt = txt.strip()
         RX = '\[[0-9]+\]'
         return re.sub(RX,'',txt)
 
-    def getLeadImageFromPage(self,page_id):
+    def get_next_sib(self, element):
+        next = element.next_sibling
+        while next == '\n':
+            next = next.next_sibling
+        return next
+
+    def get_lead_image(self,page_id):
         #image = 'https://en.wikipedia.org/w/api.php?action=parse&text={{%s}}&prop=images' % page_id
         wp_image_query = 'https://en.wikipedia.org/w/api.php?action=query&titles=%s&prop=pageimages&pilimit=1&format=json' % page_id
 
@@ -59,30 +66,35 @@ class EventExtractor(object):
             print "No image found for page: " + page_id
         return None 
 
-    def getYearRange(self,raw_txt):
+    def get_year_range(self,raw_txt):
+        print "Getting year range from: " + raw_txt
         # Check for BCE dates
-        range_split = re.search(ur'([0-9,]+(\sBC(E)?)?)?\s?(to|–|-)?\s?([0-9,]+(\sBC(E)?)?)?',raw_txt,re.UNICODE)
+        range_split = re.search(ur'((AD\s)?[0-9,]+(\sBC(E)?)?)?\s?([Bb]efore|[Uu]until|[Pp]rior to|to|–|-)?\s?([0-9,]+(\sBC(E)?)?)?',raw_txt,re.UNICODE)
         # Produces something like: (None, None, None, 'to', '14,000 BCE', ' BCE', 'E')
         if range_split:
             groups = range_split.groups()
             raw_start = groups[0]
-            raw_end = groups[4]
+            raw_end = groups[5]
             rx_digits = r'[^0-9]'
-            if groups[3]:
+            if groups[4]:
                 # We have a range
                 endyr = re.sub(rx_digits,'',raw_end) if raw_end else datetime.datetime.now().strftime('%Y')
                 # Kind of a hacky solution here to prevent scale distortion
                 startyr = re.sub(rx_digits,'',raw_start) if raw_start else endyr
-                if groups[5]:
+                if groups[6]:
                     # Both start and end must be negative...
+                    print '-'+startyr, '-'+endyr
                     return '-'+startyr, '-'+endyr
-                elif groups[1]:
+                elif groups[2]:
+                    print '-'+startyr, endyr
                     return '-'+startyr, endyr
             else:
                 startyr = re.sub(rx_digits,'',raw_start)
                 endyr = startyr
-                if groups[1]:
+                if groups[2]:
+                    print '-'+startyr, '-'+endyr
                     return '-'+startyr, '-'+endyr
+            print startyr, endyr
             return startyr, endyr
         else:
             print "Failed to split year range: " + raw_txt
@@ -111,7 +123,7 @@ class EventExtractorAnniv(EventExtractor):
                 if next_anchor:
                     ext_href = next_anchor.get('href', None)
                     if ext_href and ext_href.startswith('/wiki/'):
-                        image = self.getLeadImageFromPage(ext_href[6:])
+                        image = self.get_lead_image(ext_href[6:])
                         if image:
                             events.append({
                                 'startyear': groups[0],
@@ -135,14 +147,17 @@ class EventExtractor1(EventExtractor):
     """
     def extract(self, append_to=list()):
         events = append_to
-        links = self.soup.find_all('span', {'class' : 'mw-headline'})
-        for link in links:
-            maybe_year = link.get_text().strip()
+        sections = self.soup.find_all('span', {'class' : 'mw-headline'})
+        for hdr in sections:
+            maybe_year = hdr.get_text().strip()
             if not re.match(r'[0-9]+$', maybe_year):
                 continue
             year = maybe_year
+            l = self.get_next_sib(hdr.parent)
+            if not l or not l.name in ['ul','ol']:
+                continue
             # Check for multiple events
-            events_mkp = link.parent.find_next('ul').find_all('li')
+            events_mkp = l.find_all('li')
             for e in events_mkp:
                 media_url = None
                 image = None
@@ -151,7 +166,7 @@ class EventExtractor1(EventExtractor):
                     ext_href = first_anchor.get('href', None)
                     if ext_href and ext_href.startswith('/wiki/'):
                         media_url = URL_PREFIX_EN + ext_href
-                        image = self.getLeadImageFromPage(ext_href[6:])
+                        image = self.get_lead_image(ext_href[6:])
                 desc = e.get_text().strip()
                 events.append({
                     'startyear': year,
@@ -191,11 +206,11 @@ class EventExtractor2(EventExtractor):
                         yearspan -= 1
                     else:
                         colshift = 0
-                        raw_year = self.stripRefs(cells[year_col].get_text())
+                        raw_year = self.strip_refs(cells[year_col].get_text())
                         yearspan = int(cells[year_col].attrs['rowspan']) if 'rowspan' in cells[year_col].attrs else 0
-                    startyr, endyr = self.getYearRange(raw_year)
+                    startyr, endyr = self.get_year_range(raw_year)
                     # TODO:Need to revisit for dates
-                    raw_date = self.stripRefs(cells[date_col-colshift].get_text())
+                    raw_date = self.strip_refs(cells[date_col-colshift].get_text())
                 
                     # Attempt to get media URL, image
                     desc_cell = cells[desc_col-colshift]
@@ -206,8 +221,8 @@ class EventExtractor2(EventExtractor):
                         ext_href = first_anchor.get('href', None)
                         if ext_href and ext_href.startswith('/wiki/'):
                             media_url = URL_PREFIX_EN + ext_href
-                            image = self.getLeadImageFromPage(ext_href[6:])
-                    raw_desc = self.stripRefs(desc_cell.get_text())
+                            image = self.get_lead_image(ext_href[6:])
+                    raw_desc = self.strip_refs(desc_cell.get_text())
                     events.append({
                         'startyear': startyr,
                         'endyear': endyr,
@@ -218,6 +233,64 @@ class EventExtractor2(EventExtractor):
                 elem = elem.nextSibling
 
         return events
+
+class EventExtractor3(EventExtractor):
+    """
+    Format 3: See 'Timeline of Communication Technology'
+    """
+    def extract(self, append_to=list()):
+        events = append_to
+        sections = self.soup.find_all('span', {'class' : 'mw-headline'})
+
+        # Basically the below are used to infer if this page is in fact a timeline,
+        # depending on how many list items are recognized as beginning with dates
+        years_recognized, items_checked = 0, 0
+
+        for hdr in sections:
+            l = self.get_next_sib(hdr.parent)
+            if not l or not l.name in ['ul','ol']:
+                continue
+
+            listitems = l.find_all('li')
+
+            for li in listitems:
+                probable_events = []
+                subitems = li.find_all('li')
+                if len(subitems) > 0:
+                    # Handle nested lists
+                    raw_dates = li.next if li.next and not li.next.name else None
+                    if raw_dates:
+                        raw_dates = raw_dates.strip()
+                        startyr, endyr = self.get_year_range(raw_dates)
+                        for item in subitems:
+                            raw_desc = item.get_text()
+                            links = item.find_all('a')
+                            media_url = links[-1].get('href', None) if links else None
+                            probable_events.append((startyr,endyr,raw_desc,media_url))
+                else:
+                    rx = re.match(RX_HYPHEN_SPLIT, li.get_text(), re.UNICODE)
+                    if rx:
+                        raw_dates = rx.groups()[0].strip()
+                        startyr, endyr = self.get_year_range(raw_dates)
+                        desc = rx.groups()[2]
+                        links = li.find_all('a')
+                        media_url = links[-1].get('href', None) if links else None
+                        probable_events.append((startyr,endyr,desc,media_url))
+
+                for pe in probable_events:
+                    event = dict()
+                    if pe[0]: event['startyear'] = pe[0]
+                    if pe[1]: event['endyear'] = pe[1]
+                    event['description'] = pe[2]
+                    if pe[3]:
+                        event['media_url'] = URL_PREFIX_EN + pe[3]
+                        if pe[3].startswith('/wiki/'):
+                            image = self.get_lead_image(pe[3][6:])
+                            if image:
+                                event['bg'] = image
+                    events.append(event)
+            
+            return events
 
 """
 Query: Base query object
@@ -231,7 +304,7 @@ class Query(object):
     """
     def __init__(self, raw):
         self.raw_query = raw
-        self.extractors = [EventExtractorAnniv, EventExtractor1, EventExtractor2]
+        self.extractors = [EventExtractorAnniv, EventExtractor1, EventExtractor2, EventExtractor3]
 
     """
     validate -- attempt to validate query text (may be a link or simple text), set error feedback if needed
@@ -302,20 +375,35 @@ class Query(object):
     def page_found(self):
         return hasattr(self, 'markup')
 
+    """
+    get_events - iterate through extractors until one is found (or not) that matches the page format, and extract events
+    """
     def get_events(self):
         soup = BeautifulSoup(self.markup, 'html.parser')
         self.events = []
 
         # Iterate through extractors (each corresponds to a different page format)
         i = 0
+        num_events = 0
         while i < len(self.extractors) and not self.events:
             extractor_class = self.extractors[i]
             extractor = extractor_class(soup)
             self.events = extractor.extract(append_to=self.events)
-            print self.events
+            
+            print "Extracted %d events using %s" % (len(self.events)-num_events, type(extractor).__name__)
+            num_events += len(self.events)
             i += 1
 
         return self.events
+
+    """
+    get_title_img - attempt to retrieve the main image from the queried page, return None on fail
+    """
+    def get_title_image(self):
+        e = EventExtractor()
+        page_url = quote(self.query)
+        image = e.get_lead_image(page_url)
+        return image
 
 """
 ThisDayQuery: query object for the 'This Day in History' loading module

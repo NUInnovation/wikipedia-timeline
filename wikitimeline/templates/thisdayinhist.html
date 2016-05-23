@@ -1,20 +1,4 @@
 {% load staticfiles %}
-<!--
-<div class="row">
-  <div class="col-sm-6 col-sm-offset-3">
-    <div class="text-center mb"><img class="loader" src="{% static "wikitimeline/img/loader.gif" %}" /></div>
-    <p class="text-center">Building your timeline ...</p>
-    <h2>Meanwhile, on this date in history ...</h2>
-    {% for e in events %}
-		{% if forloop.counter0 < 5 %}
-			<h4>{{ e.startyear }}</h4>
-			<p>{{ e.description }}</p>
-		{% endif %}
-    {% endfor %}
-  </div>
-</div>
--->
-
 <!-- Carousel
 ================================================== -->
 <link href="{% static "wikitimeline/css/carousel.css" %}" rel="stylesheet">
@@ -33,7 +17,7 @@
     <div class="item{% if forloop.first %} active{% endif %}">
       <div class="container">
         <div class="carousel-caption">
-          <h2>{{ e.startyear }}</h2>
+          <h2 class="carousel-header">{{ e.startyear }}</h2>
           <p>{{ e.description }}</p>
         </div>
       </div>

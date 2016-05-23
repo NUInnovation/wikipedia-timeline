@@ -57,8 +57,7 @@ def timeline(request):
     if len(events) < 1:
         return redirect('/?err=noevents')
 
-    events_dict = { 'query': q.query, 'events': events }
-    print render_to_string('json.html', events_dict)
+    events_dict = { 'query': q.query, 'titleimg': q.get_title_image(), 'events': events }
     context = { 'query': q.query, 'timeline': render_to_string('json.html', events_dict) }
 
     return render(request, 'timeline.html', context)

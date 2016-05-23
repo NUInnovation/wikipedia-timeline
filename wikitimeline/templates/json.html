@@ -1,5 +1,11 @@
 {
     "title": {
+        {% if titleimg %}
+        "background": {
+            "opacity":"50",
+            "url": "{{titleimg}}"
+        },
+        {% endif %}
         "text": {
             "headline": "{{ query }}",
             "text": "A timeline of events from https://en.wikipedia.org/wiki/Timeline_of_the_Middle_Ages"

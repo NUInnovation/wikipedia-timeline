@@ -3,8 +3,11 @@
 
 {% block title %}WikiTimeline{% endblock %}
 
+{% block button %}<a href="#build" id="make-TL-button" class="button success build-timeline" role="button"><span>Make a WikiTimeline</span></a>{% endblock %}
+
 {% block stylesheets %}
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/smoothness/jquery-ui.css" />
+    <link rel="stylesheet" href="{% static "wikitimeline/css/carousel.css" %}" />
 {% endblock %}
 
 {% block content %}
@@ -68,8 +71,10 @@
                 }
             });
 
-            $( "#make-TL-button" ).click(function() {
-              $( "#build" ).scroll();
+            $("#make-TL-button").click(function() {
+                $('html, body').animate({
+                    scrollTop: $("#build").offset().top
+                }, 1000);
             });
 
             $.fn.search = function () {
@@ -101,6 +106,10 @@
                         success: function (data) {
                             if (data.is_valid) {
                                 $('#page-content').html(data.events_html);
+                                $("#make-TL-button").hide();
+                                $('html, body').animate({
+                                    scrollTop: $("#page-content").offset().top
+                                }, 500);
                                 setTimeout(function () {
                                     $('#validated-query').val(data.validated_query);
                                     $('#query-submit').submit();

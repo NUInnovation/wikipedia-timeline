@@ -44,15 +44,25 @@ body {
 }
 /* Since positioning the image, we need to help out the caption */
 .carousel-caption {
-  z-index: 10;
-  bottom: none;
   top: 100px;
+  z-index: 10;
+}
+
+.carousel-header {
+  font-size: 5em;
+  line-height: 1.4;
+  margin-bottom: 20px;
+}
+
+.carousel-caption p {
+  color: #000;
+  text-shadow: none;
 }
 
 /* Declare heights because of positioning of img element */
 .carousel .item {
   height: 500px;
-  background-color: #eee;
+  background-color: #fff !important;
 }
 .carousel-inner > .item > img {
   position: absolute;
