@@ -5,3 +5,4 @@
 *.sqlite3
 *.swp
 staticfiles
+wikitimeline/settings.py
