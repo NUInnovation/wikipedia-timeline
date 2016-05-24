@@ -8,7 +8,7 @@
         {% endif %}
         "text": {
             "headline": "{{ query }}",
-            "text": "A timeline of events from https://en.wikipedia.org/wiki/Timeline_of_the_Middle_Ages"
+            "text": "A timeline of events from https://en.wikipedia.org/wiki/"
         }
     },
     "events": [
@@ -36,7 +36,9 @@
             },
             {% endif %}
             "text": {
-                "headline": "",
+                {% if e.headline %}
+                "headline": "{{e.headline}}",
+                {% endif %}
                 "text": "{{e.description}}"
             }
         },

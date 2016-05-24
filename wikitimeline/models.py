@@ -7,6 +7,7 @@ import json, pycurl, re, requests, datetime, HTMLParser, wikipedia
 from StringIO import StringIO
 from bs4 import BeautifulSoup
 from urllib import quote, unquote
+from random import randint
 
 # Source for below: http://daringfireball.net/2010/07/improved_regex_for_matching_urls
 RX_URLMATCH = r'(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)/)(?:[^\s()<>{}\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’])|(?:(?<!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))'
@@ -238,6 +239,20 @@ class EventExtractor3(EventExtractor):
     """
     Format 3: See 'Timeline of Communication Technology'
     """
+
+    def _get_last_link(self, soup_obj, raw_desc):
+        links = soup_obj.find_all('a')
+        RX = r'\[[0-9]+\]$'
+        if re.search(RX,raw_desc):
+            if len(links) > 1:
+                link_index = -2
+            else:
+                link_index = None
+        else:
+            link_index = -1
+        result = links[link_index].get('href', None) if (links and link_index) else None
+        return result
+
     def extract(self, append_to=list()):
         events = append_to
         sections = self.soup.find_all('span', {'class' : 'mw-headline'})
@@ -264,17 +279,17 @@ class EventExtractor3(EventExtractor):
                         startyr, endyr = self.get_year_range(raw_dates)
                         for item in subitems:
                             raw_desc = item.get_text()
-                            links = item.find_all('a')
-                            media_url = links[-1].get('href', None) if links else None
+                            desc = self.strip_refs(raw_desc)
+                            media_url = self._get_last_link(item, raw_desc)
                             probable_events.append((startyr,endyr,raw_desc,media_url))
                 else:
                     rx = re.match(RX_HYPHEN_SPLIT, li.get_text(), re.UNICODE)
                     if rx:
                         raw_dates = rx.groups()[0].strip()
                         startyr, endyr = self.get_year_range(raw_dates)
-                        desc = rx.groups()[2]
-                        links = li.find_all('a')
-                        media_url = links[-1].get('href', None) if links else None
+                        raw_desc = rx.groups()[2]
+                        desc = self.strip_refs(raw_desc)
+                        media_url = self._get_last_link(li, raw_desc)
                         probable_events.append((startyr,endyr,desc,media_url))
 
                 for pe in probable_events:
@@ -394,7 +409,19 @@ class Query(object):
             num_events += len(self.events)
             i += 1
 
+        self._get_headlines()
+
         return self.events
+
+    """
+    _get_headlines - Assign raw descriptions to be either headlines or descriptions based on length
+    """
+    def _get_headlines(self):
+        if hasattr(self, 'events'):
+            for e in self.events:
+                if len(e['description']) < 100 or 'bg' not in e:
+                    e['headline'] = e['description']
+                    e['description'] = ''
 
     """
     get_title_img - attempt to retrieve the main image from the queried page, return None on fail
@@ -403,7 +430,21 @@ class Query(object):
         e = EventExtractor()
         page_url = quote(self.query)
         image = e.get_lead_image(page_url)
+        # If we can't find an image in the title page, we randomly select one from the events
+        if hasattr(self, 'events') and self.events:
+            while not image:
+                random_event = self.events[randint(0,len(self.events)-1)]
+                image = random_event['bg'] if 'bg' in random_event else None
         return image
+
+    """
+    titlefy - make into title for presentation to user
+    """
+    def titlefy(self):
+        if hasattr(self, 'query'):
+            return self.query.title()
+        else:
+            return None
 
 """
 ThisDayQuery: query object for the 'This Day in History' loading module
