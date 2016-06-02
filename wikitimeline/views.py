@@ -15,7 +15,7 @@ Serve index page
 def index(request):
     err = request.GET.get('err','')
     if err == 'noevents':
-        msg = 'No events found!'
+        msg = "Our bad! We weren't able to retrieve any events. Give a different query a shot."
         context = { 'err': msg }
         return render(request, 'index.html', context)
     else:

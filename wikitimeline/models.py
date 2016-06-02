@@ -304,7 +304,7 @@ class EventExtractor3(EventExtractor):
                                 event['bg'] = image
                     events.append(event)
             
-            return events
+        return events
 
 """
 Query: Base query object
