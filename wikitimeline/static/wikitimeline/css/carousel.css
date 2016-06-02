@@ -39,12 +39,12 @@ body {
 
 /* Carousel base class */
 .carousel {
-  height: 500px;
+  height: 300px;
   margin-bottom: 60px;
 }
 /* Since positioning the image, we need to help out the caption */
 .carousel-caption {
-  top: 100px;
+  top: 10px;
   z-index: 10;
 }
 
@@ -61,7 +61,7 @@ body {
 
 /* Declare heights because of positioning of img element */
 .carousel .item {
-  height: 500px;
+  height: 300px;
   background-color: #fff !important;
 }
 .carousel-inner > .item > img {
@@ -69,7 +69,16 @@ body {
   top: 0;
   left: 0;
   min-width: 100%;
-  height: 500px;
+  height: 300px;
+}
+.carousel-indicators {
+  display: none !important;
+}
+.carousel-indicators li {
+  border-color: #3d3d3d;
+}
+.carousel-indicators li.active {
+  background-color: #3d3d3d;
 }
 
 

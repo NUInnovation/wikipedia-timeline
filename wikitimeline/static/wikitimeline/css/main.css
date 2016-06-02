@@ -98,8 +98,8 @@ textarea {
 h1 {
     margin-top: 0px;
 }
-.loader {
-    width: 36px;
+.load-hdr {
+    margin: 60px 0px 20px;
 }
 .mb {
     margin-bottom: 10px;
@@ -108,8 +108,22 @@ h1 {
     margin-bottom: 20px;
 }
 
+#share {
+    margin: 0px 0px 20px;
+}
+
 #timeline-embed {
     margin-bottom: 30px;
+}
+
+label {
+    display: inline-block !important;
+}
+.glyphicon-link {
+    top: 0;
+}
+#inputLink {
+    width: 200px;
 }
 
 

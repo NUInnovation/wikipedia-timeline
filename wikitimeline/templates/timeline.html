@@ -8,15 +8,26 @@
 {% block title %}WikiTimeline | {{query}}{% endblock %} 
 
 {% block content %}
-  <div class="container">
-    <h3 class="text-left">Timeline: <strong>{{ query }}</strong></h3>
+  <div id="share" class="container form-inline">
+    <!-- <h3 class="text-left">Timeline: <strong>{{ query }}</strong></h3> -->
+      <div class="form-group pull-right">
+        <label class="control-label" for="inputLink" style="margin-right: 5px;">Share this timeline</label>
+        <div class="input-group">
+          <span class="input-group-addon glyphicon glyphicon-link"></span>
+          <input type="text" class="form-control" id="inputLink" value="https://wikitimeline.herokuapp.com/timeline/{{ link }}">
+        </div>
+      </div>
   </div>
-  <div id='timeline-embed' style="width: 100%; height: 600px"></div>
+  <div id="timeline-embed" style="width: 100%; height: 600px"></div>
 {% endblock %}
 
 {% block scripts %}
   <script type="text/javascript">
     var jsonTL = {{ timeline }};
     timeline = new TL.Timeline('timeline-embed',jsonTL)
+
+    $(document).ready(function () {
+        $('html, body').scrollTop($("#share").offset().top);
+    });
   </script>
 {% endblock %}

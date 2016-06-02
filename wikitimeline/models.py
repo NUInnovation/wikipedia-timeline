@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# from django.db import models # MIGHT NOT NEED
-
+from django.db import models
 import json, pycurl, re, requests, datetime, HTMLParser, wikipedia
 from StringIO import StringIO
 from bs4 import BeautifulSoup
@@ -475,3 +474,7 @@ class ThisDayQuery(Query):
             i += 1
 
         return self.events
+
+class Timeline(models.Model):
+    title = models.CharField(max_length=256)
+    json = models.CharField(max_length=1000000)

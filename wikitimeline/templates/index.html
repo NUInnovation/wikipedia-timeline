@@ -15,8 +15,8 @@
         <input id="validated-query" name="validated_query" type="hidden" value="" />
     </form>
     <div id="page-content" class="container">
-        <iframe src='https://cdn.knightlab.com/libs/timeline3/latest/embed/index.html?source=19SoUdUaFPHUDWgZm8ifuMBxI5x_PrUUGTllr93Os3EY&font=Default&lang=en&initial_zoom=2&height=400' width='100%' height='400' frameborder='0'></iframe>
-        <p class="timeline-caption">A WikiTimeline about the <a href="https://en.wikipedia.org/wiki/Timeline_of_Canadian_history" target="_blank">History of Canada in the 20th century</a>.</p>
+      <iframe src='https://cdn.knightlab.com/libs/timeline3/latest/embed/index.html?source=19SoUdUaFPHUDWgZm8ifuMBxI5x_PrUUGTllr93Os3EY&font=Default&lang=en&initial_zoom=2&height=400' width='100%' height='400' frameborder='0'></iframe>
+      <p class="timeline-caption">A WikiTimeline about the <a href="https://en.wikipedia.org/wiki/Timeline_of_Canadian_history" target="_blank">History of Canada in the 20th century</a>.</p>
       <div class="row">
         <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1 col-sm-10 col-sm-offset-1 col-xs-12">
           <p>WikiTimeline is a free, open-source tool based on <a href="http://timeline.knightlab.com/" target="_blank">TimelineJS</a> that builds beautiful, interactive timelines using on Wikipedia articles. Just give it a search query or the link to an article, and we'll handle the rest.</p>
@@ -106,10 +106,13 @@
                         success: function (data) {
                             if (data.is_valid) {
                                 $('#page-content').html(data.events_html);
-                                $("#make-TL-button").hide();
+                                $('#make-TL-button').hide();
                                 $('html, body').animate({
                                     scrollTop: $("#page-content").offset().top
                                 }, 500);
+                                $('.progress-bar').animate({
+                                    'width': '100%'
+                                }, 10000);
                                 setTimeout(function () {
                                     $('#validated-query').val(data.validated_query);
                                     $('#query-submit').submit();

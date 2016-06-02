@@ -2,9 +2,21 @@
 <!-- Carousel
 ================================================== -->
 <link href="{% static "wikitimeline/css/carousel.css" %}" rel="stylesheet">
-<div class="text-center mb"><img class="loader" src="{% static "wikitimeline/img/loader.gif" %}" /></div>
-<p class="text-center">Building your timeline, bear with me...</p>
-<h2>On this date in history...</h2>
+<h2 class="text-center load-hdr">Building your timeline, bear with me...</h2>
+<div class="row">
+  <div class="col-sm-4 col-sm-offset-4 mb_x2">
+    <div class="progress">
+      <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+        <span class="sr-only">100% Complete</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-xs-12 text-center">
+    <p>Check out what happened on this date in history!</p>
+  </div>
+</div>
 <div id="myCarousel" class="carousel slide" data-ride="carousel">
   <!-- Indicators -->
   <ol class="carousel-indicators">

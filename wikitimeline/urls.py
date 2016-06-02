@@ -19,9 +19,10 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 import wikitimeline.views
 
 urlpatterns = [
-    url(r'^$', wikitimeline.views.index),
+    url(r'^$', wikitimeline.views.index, name='homepage'),
     url(r'^validate/$', wikitimeline.views.validate),
     url(r'^timeline/$', wikitimeline.views.timeline),
+    url(r'^timeline/(?P<id>[0-9]+)/$', wikitimeline.views.timeline),
     url(r'^admin/', include(admin.site.urls)),
 ]
 
